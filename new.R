@@ -41,6 +41,5 @@ for (val in number){
 }
 
 print(x)
-if (val==0)
 print(sum(x)) # number 2 is the majority class !!remember the array position start at 1 !!
 
