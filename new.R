@@ -42,4 +42,9 @@ for (val in number){
 
 print(x)
 print(sum(x)) # number 2 is the majority class !!remember the array position start at 1 !!
+wrong_prediction <- sum(x) - x[2]
+majority_percentage <- (x[2] * 100 )/sum(x)
+
+print(wrong_prediction)
+print(majority_percentage)
 
