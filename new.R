@@ -1,7 +1,17 @@
 require(OpenImageR)
-mnist.dat <- read.csv("/Users/andrea/Desktop/PTRC/mnist.csv")
 
+## for multinomial logit mode
+require(foreign)
+require(nnet)
+require(ggplot2)
+require(reshape2)
+#
+
+mnist.dat <- read.csv("/Users/andrea/Desktop/PTRC/mnist.csv")
+#attach(mnist.dat)
 #imageShow(matrix(as.numeric(mnist.dat[848,-1]),nrow=28,ncol=28,byrow=T))
+
+#SHOW THE IMAGE OF THE MEAN OF THE NUMBER, BUT CALCULATED FOR ROW, BECAUSE EVERY ROW IS A NUMBER
 
 number <- c(mnist.dat[,1])
 
@@ -40,11 +50,41 @@ for (val in number){
   }
 }
 
+vector <- c()
 print(x)
 print(sum(x)) # number 2 is the majority class !!remember the array position start at 1 !!
-wrong_prediction <- sum(x) - x[2]
-majority_percentage <- (x[2] * 100 )/sum(x)
+wrong_prediction <- sum(x) - max(x)
+majority_percentage <- (max(x) * 100 )/sum(x)
 
-print(wrong_prediction)
-print(majority_percentage)
+
+
+
+vector <- c(apply(mnist.dat != 0, 1, sum)) #number of zeroes grouped by 1, which means row
+
+mean_number <- tapply(vector,mnist.dat[,1],mean) #mean
+standard_dev <- tapply(vector,mnist.dat[,1],sd) #standard deviation
+
+scaled_vector <- scale(vector, center = TRUE, scale = TRUE)
+print(scaled_vector)
+
+x <- data.frame("label" = mnist.dat[,1], "vectorWeight" = scaled_vector) # x is our dataframe
+model <- multinom(x)
+summary(model)
+
+#prediction <- predict(model, type = 'probs', x["vectorWeight"])
+prediction <- predict(model, x["vectorWeight"])
+summary(prediction)
+
+#y <- data.frame("label" = mnist.dat[,1], "vectorWeight" = vector) # not scaled vector
+#result2 <- multinom(y)
+#summary(result2)
+
+#fai la media per ogni pixel, per ogni numero
+
+newdata <- mnist.dat[6,]
+media <- mean(which(newdata!=0)) #media dei valori che sono diversi da zero
+newdata <- replace(newdata, newdata !=0, media)
+
+imageShow(matrix(as.numeric(newdata),nrow=28,ncol=28,byrow=T))
+
 
