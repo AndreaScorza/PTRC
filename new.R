@@ -9,6 +9,7 @@ require(reshape2)
 #require(SDMTools)
 #require(crossval)
 require(MLmetrics)
+require(base)
 #
 
 mnist.dat <- read.csv("/Users/andrea/Desktop/PTRC/mnist.csv")
@@ -135,9 +136,61 @@ confMat2 <- ConfusionMatrix(prediction, trueValues)
 print(confMat2)
 
 
+###############finding the next feature
+
+#width
+#trying with the width, every number has the same ....
+width_vect <- c()
+j <- 1
+while (j <= 42000){
+firstRow <- as.numeric(mnist.dat[j,])
+firstRow <- matrix(firstRow[-c(1)],nrow = 28,ncol = 28)
+#print(firstRow) #we have the first row as a Matrix
+
+result <- colSums (firstRow, na.rm = FALSE, dims = 1)
+print(result) #sum by column of the 28 column for a digit
+
+width <- 0
+count <- 1
+while(count <= 28){
+  if (result[count] != 0){
+    width <- width + 1
+  }
+  count <- count + 1
+}
+
+width_vect <- c(width_vect, width)
+j <- j + 1
+}
+print(length(width_vect))
 
 
 
+#trying the biggest row value and biggest column value
+
+colMax <- c()
+rowMax <- c() #all the maximum value
+j <- 1
+while (j <= 42000){
+  
+  firstNumber <- as.numeric(mnist.dat[j,])
+  fnm <- matrix(firstNumber[-c(1)],nrow = 28,ncol = 28) # FNM = first number matrix
+  #print(fnm) #we have the first row as a Matrix
+  #print(max(colSums(fnm, na.rm = FALSE, dims = 1)))
+  #print(max(rowSums(fnm, na.rm = FALSE, dims = 1)))
+  
+  colMax <- c(colMax, max(colSums (fnm, na.rm = FALSE, dims = 1)))
+  rowMax  <- c(rowMax, max(rowSums (fnm, na.rm = FALSE, dims = 1)))
+  print(j)
+  j <- j + 1
+}
+
+# combine the max for row, and column, and true label,
+# train the model
+# make a prediction
+# and hopefully it will be better than the previous model
+
+#print (colMax)
 
 
 
