@@ -5,6 +5,10 @@ require(foreign)
 require(nnet)
 require(ggplot2)
 require(reshape2)
+#require(caret)
+#require(SDMTools)
+#require(crossval)
+require(MLmetrics)
 #
 
 mnist.dat <- read.csv("/Users/andrea/Desktop/PTRC/mnist.csv")
@@ -56,7 +60,14 @@ print(sum(x)) # number 2 is the majority class !!remember the array position sta
 wrong_prediction <- sum(x) - max(x)
 majority_percentage <- (max(x) * 100 )/sum(x)
 
+######## Mean of the number
 
+mean_image <- data.frame(mnist.dat[,2:ncol(mnist.dat)])
+mean_image <- apply(mean_image,2,mean)
+
+#DISPLAY IMAGE OF THE MEAN
+imageShow(matrix(as.numeric(mean_image[]),nrow=28,ncol=28,byrow=T))
+############ end mean image
 
 
 vector <- c(apply(mnist.dat != 0, 1, sum)) #number of zeroes grouped by 1, which means row
@@ -71,15 +82,6 @@ x <- data.frame("label" = mnist.dat[,1], "vectorWeight" = scaled_vector) # x is 
 model <- multinom(x)
 summary(model)
 
-######## Mean of the number
-
-mean_image <- data.frame(mnist.dat[,2:ncol(mnist.dat)])
-mean_image <- apply(mean_image,2,mean)
-
-#DISPLAY IMAGE OF THE MEAN
-imageShow(matrix(as.numeric(mean_image[]),nrow=28,ncol=28,byrow=T))
-############ end mean image
-
 #prediction <- predict(model, type = 'probs', x["vectorWeight"])
 prediction <- predict(model, x["vectorWeight"])
 summary(prediction)
@@ -87,6 +89,49 @@ summary(prediction)
 #y <- data.frame("label" = mnist.dat[,1], "vectorWeight" = vector) # not scaled vector
 #result2 <- multinom(y)
 #summary(result2)
+
+trueValues <- as.factor(mnist.dat[,1]) #label of true values as factor
+trueValues2 <- mnist.dat[,1]
+
+
+#making the ground truth correct label vector 
+#we create a vector where if we predicted correcly is going to print 0 otherwise 1
+truth_vect <- c()
+i <- 1
+zeroCount <- 0
+while (i <= 42000){
+  if (prediction[i] == trueValues2[i]){ #we use the vector instead of the factor
+    truth_vect <- c(truth_vect, 0)
+  }
+  else{
+    truth_vect <- c(truth_vect, 1)
+    zeroCount <- zeroCount + 1
+  }
+  i <- i + 1
+}
+incorrectPredPerc <- (zeroCount * 100) / length(truth_vect)
+correctPredPerc <- ((length(truth_vect) - zeroCount) * 100) / length(truth_vect)
+print(correctPredPerc)
+# or
+# you could have just used this :
+print(Precision(truth_vect, prediction)) 
+print(Recall(truth_vect, prediction))
+
+
+# we print the confusion matrix just with 1 and 0 wich means predicted wrongly and correctly
+confMat <- ConfusionMatrix(prediction, truth_vect)
+print(confMat)
+
+#here we use the confision matrix with all the values
+# on y_true ti dice i numeri che ha predetto erroneamente, ad esempio il 3, è stato predetto correttamente
+# 1122 volte, ed è stato scambiato con lo 0 864 volte
+confMat2 <- ConfusionMatrix(prediction, trueValues)
+print(confMat2)
+
+
+
+
+
 
 
 
