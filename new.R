@@ -71,6 +71,15 @@ x <- data.frame("label" = mnist.dat[,1], "vectorWeight" = scaled_vector) # x is 
 model <- multinom(x)
 summary(model)
 
+######## Mean of the number
+
+mean_image <- data.frame(mnist.dat[,2:ncol(mnist.dat)])
+mean_image <- apply(mean_image,2,mean)
+
+#DISPLAY IMAGE OF THE MEAN
+imageShow(matrix(as.numeric(mean_image[]),nrow=28,ncol=28,byrow=T))
+############ end mean image
+
 #prediction <- predict(model, type = 'probs', x["vectorWeight"])
 prediction <- predict(model, x["vectorWeight"])
 summary(prediction)
@@ -79,12 +88,6 @@ summary(prediction)
 #result2 <- multinom(y)
 #summary(result2)
 
-#fai la media per ogni pixel, per ogni numero
 
-newdata <- mnist.dat[6,]
-media <- mean(which(newdata!=0)) #media dei valori che sono diversi da zero
-newdata <- replace(newdata, newdata !=0, media)
-
-imageShow(matrix(as.numeric(newdata),nrow=28,ncol=28,byrow=T))
 
 
