@@ -114,8 +114,14 @@ correctPredPerc <- ((length(truth_vect) - zeroCount) * 100) / length(truth_vect)
 print(correctPredPerc)
 # or
 # you could have just used this :
-print(Precision(truth_vect, prediction)) 
-print(Recall(truth_vect, prediction))
+P <- Precision(truth_vect, prediction)
+R <- Recall(truth_vect, prediction)
+A <- Accuracy(truth_vect, prediction)
+F1 <- (2*P*R/P+R)
+print(F1)
+print(P)
+print(R)
+print(A)
 
 
 # we print the confusion matrix just with 1 and 0 wich means predicted wrongly and correctly
