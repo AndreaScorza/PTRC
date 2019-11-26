@@ -2,7 +2,7 @@ mnist.dat <- read.csv('C:/Users/User/Desktop/PTRC/mnist.csv')
 
 require(OpenImageR)
 
-#imageShow(matrix(as.numeric(mnist.dat[360,-1]),nrow=28,ncol=28,byrow=T))
+
 
 firstcol <- data.frame()
 one <- data.frame()
@@ -10,7 +10,6 @@ one <- data.frame()
 label <- c(mnist.dat[,1])
 
 #firstcol <- rbind(label)
-
 
 
 x <- c(0,0,0,0,0,0,0,0,0,0)
@@ -63,7 +62,34 @@ x
 sum(x)
 max(x)
 
-percent <- (max(x, na.rm=FALSE)/sum(x))*100
+percent <- round((max(x, na.rm=FALSE)/sum(x))*100,2)
+
+percent
+
+Ink<- c()
+
+Ink <- c(apply(mnist.dat =! 0,1,sum))
 
 
+Ink
+
+data_mean <- tapply(label, mnist.dat[,1], mean)
+data_sd <- tapply(label, mnist.dat[,1], sd)
+
+data_mean
+data_sd
+
+#Creating a new matrix, replacing all positive pixels by 1
+new_set <- mnist.dat[,2:ncol(mnist.dat)]
+new_dataset <- replace(new_set, new_set!=0, 1)
+
+#Adding the 1st label column (unmodified by previous function)
+new_dataset <- cbind(mnist.dat[,1], new_dataset)
+
+
+
+
+
+imageShow(matrix(as.numeric(new_dataset[361,-1]),nrow=28,ncol=28,byrow=T))
+imageShow(matrix(as.numeric(mnist.dat[361,-1]),nrow=28,ncol=28,byrow=T))
 
