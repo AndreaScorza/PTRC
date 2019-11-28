@@ -110,6 +110,7 @@ while (i <= 42000){
   }
   i <- i + 1
 }
+print(zeroCount)
 incorrectPredPerc <- (zeroCount * 100) / length(truth_vect)
 correctPredPerc <- ((length(truth_vect) - zeroCount) * 100) / length(truth_vect)
 print(correctPredPerc)
@@ -148,7 +149,7 @@ firstRow <- matrix(firstRow[-c(1)],nrow = 28,ncol = 28)
 #print(firstRow) #we have the first row as a Matrix
 
 result <- colSums (firstRow, na.rm = FALSE, dims = 1)
-print(result) #sum by column of the 28 column for a digit
+#print(result) #sum by column of the 28 column for a digit
 
 width <- 0
 count <- 1
@@ -185,13 +186,47 @@ while (j <= 42000){
   j <- j + 1
 }
 
-# combine the max for row, and column, and true label,
-# train the model
-# make a prediction
-# and hopefully it will be better than the previous model
+print(colMax)
 
-#print (colMax)
+y <- data.frame("label" = mnist.dat[,1], "Row_Max" = rowMax, "Col_Max" = colMax) 
+model2 <- multinom(y)
 
+prediction2 <- predict(model2, y[,2:3])
+summary(prediction2)
+
+print(ConfusionMatrix(prediction2, trueValues))
+
+#doing again the truth vector
+truth_vect2 <- c()
+i <- 1
+zeroCount2 <- 0
+while (i <= 42000){
+  if (prediction2[i] == trueValues2[i]){ #we use the vector instead of the factor
+    truth_vect2 <- c(truth_vect2, 0)
+  }
+  else{
+    truth_vect2 <- c(truth_vect2, 1)
+    zeroCount2 <- zeroCount2 + 1
+  }
+  i <- i + 1
+}
+
+print(zeroCount2)
+incorrectPredPerc2 <- (zeroCount2 * 100) / length(truth_vect2)
+correctPredPerc2 <- ((length(truth_vect2) - zeroCount2) * 100) / length(truth_vect2)
+print(correctPredPerc2)
+# or
+# you could have just used this :
+P2 <- Precision(truth_vect2, prediction2)
+R2 <- Recall(truth_vect2, prediction2)
+A2 <- Accuracy(truth_vect2, prediction2)
+F12 <- (2*P2*R2/P2+R2)
+print(F12)
+print(P2)
+print(R2)
+print(A2)
+
+# it actually works worse 
 
 
 
