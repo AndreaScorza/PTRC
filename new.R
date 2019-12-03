@@ -1,16 +1,13 @@
 require(OpenImageR)
-
-## for multinomial logit mode
 require(foreign)
 require(nnet)
 require(ggplot2)
 require(reshape2)
-#require(caret)
-#require(SDMTools)
-#require(crossval)
 require(MLmetrics)
 require(base)
-#
+require(glmnet)
+require(e1071)
+
 
 mnist.dat <- read.csv("/Users/andrea/Desktop/PTRC/mnist.csv")
 #attach(mnist.dat)
@@ -168,6 +165,7 @@ print(length(width_vect))
 
 
 #trying the biggest row value and biggest column value
+#we take the longest white row and longest white column
 
 colMax <- c()
 rowMax <- c() #all the maximum value
@@ -228,5 +226,168 @@ print(A2)
 
 # it actually works worse 
 
+#trying the third approach
+imageShow(matrix(as.numeric(mnist.dat[6,-1]),nrow=28,ncol=28,byrow=T))
+
+firstNumber <- as.numeric(mnist.dat[6,])
+fnm <- matrix(firstNumber[-c(1)],nrow = 28,ncol = 28) # FNM = first number matrix
+imageShow(fnm)
+
+print(ncol(fnm))
+
+#we did this to center the image even more, and remove the noise of black useless row /columns
+z <- 1
+my_list <- list()
+while (z <= 42000){
+    firstNumber <- as.numeric(mnist.dat[z,])
+    fnm <- matrix(firstNumber[-c(1)],nrow = 28,ncol = 28)
+    
+
+    
+    for (i in 1: ncol(fnm)){
+    if (sum(fnm[i]) == 0){
+      fnm <- fnm[, -i]
+      }
+    }
+    
+    for (i in 1: nrow(fnm)){
+    if (sum(fnm[i]) == 0){
+      fnm <- fnm[-i,]
+      }
+    }
+    
+    
+    vec <- c()
+    vec <- c (vec, mean(fnm[1:4,1:4]))
+    vec <- c (vec, mean(fnm[1:4,5:8]))
+    vec <- c (vec, mean(fnm[1:4,9:12]))
+    vec <- c (vec, mean(fnm[1:4,13:ncol(fnm)]))
+    
+    vec <- c (vec, mean(fnm[5:8,1:4]))
+    vec <- c (vec, mean(fnm[5:8,5:8]))
+    vec <- c (vec, mean(fnm[5:8,9:12]))
+    vec <- c (vec, mean(fnm[5:8,13:ncol(fnm)]))
+    
+    vec <- c (vec, mean(fnm[9:12,1:4]))
+    vec <- c (vec, mean(fnm[9:12,5:8]))
+    vec <- c (vec, mean(fnm[9:12,9:12]))
+    vec <- c (vec, mean(fnm[9:12,13:ncol(fnm)]))
+    
+    
+    vec <- c (vec, mean(fnm[13:nrow(fnm),1:4]))
+    vec <- c (vec, mean(fnm[13:nrow(fnm),5:8]))
+    vec <- c (vec, mean(fnm[13:nrow(fnm),9:12]))
+    vec <- c (vec, mean(fnm[13:nrow(fnm),13:ncol(fnm)]))
+    my_list <- list(my_list, vec)
+    
+    z <- z + 1
+}
+
+print(my_list[1])
+print(vec)
+
+
+training_data2 <- data.frame("label" = mnist.dat[,1], "weights" = vec)
+model2 <- multinom(training_data2)
+summary(model2)
+
+
+
+# NEW PART POINT 5
+
+label <- mnist.dat[,1]
+features <- mnist.dat[,-1]
+#dafare <- mnist.dat[5001:42000, -1]
+print(dafare)
+
+x <- data.frame("label" = label, "features" = features)
+print(x[5,1])
+
+model <- multinom(x[1:100,] ,MaxNWts = 10000)
+      
+prediction <- predict(model, x[101:200, ])
+summary(prediction)
+
+print (x$label[i])
+i <- 1
+truth_vect <- c()
+while (i < 201){
+  if(label[i] == prediction[i]) {
+    truth_vect <- c(truth_vect, 0)
+  }
+  else{
+    truth_vect <- c(truth_vect, 1)
+  }
+  i <- i + 1
+}
+###### Trying cv.glmnet
+
+labels <- mnist.dat[1:5000,1]
+features <- mnist.dat[1:5000,-1]
+
+test_labels <- mnist.dat[5001:42000,1]
+test_features <- mnist.dat[5001:42000,-1]
+
+model  <- cv.glmnet(as.matrix(features), labels, family="multinomial", type.measure="class")
+plot(model) # to find the best lambda
+
+prediction <- predict(model, as.matrix(test_features),type="class")
+summary(prediction)
+prediction.confmat <- table(test_labels, prediction)
+print(prediction.confmat)
+print(sum(diag(prediction.confmat))/sum(prediction.confmat)) #that's the accuracy
+
+####### svm
+
+## doing it again but with the function on the whole dataset
+
+mnist.dat.cleaned <- rem.zero(mnist.dat)
+i <- 1
+vect <- c()
+for (i in 1:ncol(mnist.dat.cleaned[1:5000,])){
+  if (sum(mnist.dat.cleaned[1:5000,i]) == 0){
+    vect <- c(vect, i)
+  }
+}
+i <- 1
+for (i in 1:ncol(mnist.dat.cleaned[5001:nrow(mnist.dat.cleaned),])){
+  if (sum(mnist.dat.cleaned[5001:nrow(mnist.dat.cleaned),i]) == 0){
+    vect <- c(vect, i)
+  }
+}
+print(vect)
+mnist.dat.cleaned <- mnist.dat.cleaned[, -vect]
+
+labels <- mnist.dat.cleaned[1:5000, 1]
+features <- mnist.dat.cleaned[1:5000, -1]
+
+test_labels <- mnist.dat.cleaned[5001:nrow(mnist.dat.cleaned), 1]
+test_features <- mnist.dat.cleaned[5001:nrow(mnist.dat.cleaned), -1]
+
+model.svm <- svm(features, labels)
+pred.svm <- predict(model.svm, test_features)
+
+summary(pred.svm)
+print(test_labels)
+pred.svm.confmat <- table(test_labels, pred.svm)
+print(pred.svm.confmat)
+print(sum(diag(pred.svm.confmat))/sum(pred.svm.confmat)) #that's the accuracy
+
+#### neural network
+
+labels <- mnist.dat[1:5000,1]
+features <- mnist.dat[1:5000,-1]
+
+test_labels <- mnist.dat[5001:42000,1]
+test_features <- mnist.dat[5001:42000,-1]
+
+
+model  <- nnet(as.matrix(features), labels, size = 3, MaxNWts = 10000)
+
+prediction <- predict(model, as.matrix(test_features))
+summary(prediction)
+prediction.confmat <- table(test_labels, prediction)
+print(prediction.confmat)
+print(sum(diag(prediction.confmat))/sum(prediction.confmat)) #that's the accuracy
 
 
