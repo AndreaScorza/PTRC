@@ -7,3 +7,6 @@ Support Vector Machine.         : e1071           : svm
 Neural Networks                 : nnet            : nnet
 Parameter Tuning	              : e1071           : tune.svm, tune.nnet
 
+| Attempt | #1 | #2 |
+| :---: | :---: | :---: |
+| Seconds | 301 | 283 |
